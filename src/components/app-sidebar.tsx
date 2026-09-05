@@ -1,8 +1,23 @@
 "use client";
 
+import { Fragment } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronRightIcon, LogOutIcon } from "lucide-react";
+import {
+  ChevronRightIcon,
+  ChevronsUpDownIcon,
+  ClipboardListIcon,
+  DownloadIcon,
+  InfoIcon,
+  type LucideIcon,
+  LogOutIcon,
+  MessageSquareIcon,
+  PencilLineIcon,
+  StarIcon,
+  TrophyIcon,
+  UploadIcon,
+} from "lucide-react";
+import { toast } from "sonner";
 
 import { logout } from "@/app/actions";
 import {
@@ -10,6 +25,14 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Sidebar,
   SidebarContent,
@@ -72,10 +95,13 @@ function NavNode({
   const isActive = node.id === activeId;
   const hasChildren = node.children.length > 0;
 
+  const activeClass =
+    "data-[active=true]:bg-sidebar-primary/10 data-[active=true]:text-sidebar-primary data-[active=true]:font-medium";
+
   if (!hasChildren) {
     return (
       <SidebarMenuSubItem>
-        <SidebarMenuSubButton asChild isActive={isActive}>
+        <SidebarMenuSubButton asChild isActive={isActive} className={activeClass}>
           <NavLink href={`/n/${node.id}`}>
             <span className="truncate">{nodeLabel(node)}</span>
           </NavLink>
@@ -91,7 +117,11 @@ function NavNode({
         className="group/node"
       >
         <div className="flex items-center gap-1">
-          <SidebarMenuSubButton asChild isActive={isActive} className="flex-1">
+          <SidebarMenuSubButton
+            asChild
+            isActive={isActive}
+            className={`flex-1 ${activeClass}`}
+          >
             <NavLink href={`/n/${node.id}`}>
               <span className="truncate">{nodeLabel(node)}</span>
             </NavLink>
@@ -133,7 +163,11 @@ function ChapterNode({
     >
       <SidebarMenuItem>
         <div className="flex items-center gap-1">
-          <SidebarMenuButton asChild isActive={isActive} className="flex-1">
+          <SidebarMenuButton
+            asChild
+            isActive={isActive}
+            className="flex-1 data-[active=true]:bg-sidebar-primary/10 data-[active=true]:text-sidebar-primary"
+          >
             <NavLink href={`/n/${node.id}`}>
               <span className="truncate font-medium">{nodeLabel(node)}</span>
             </NavLink>
@@ -177,7 +211,7 @@ export function AppSidebar({
     <Sidebar>
       <SidebarHeader className="border-b">
         <div className="flex items-center gap-2 px-2 py-1.5">
-          <div className="flex size-8 items-center justify-center rounded-md bg-primary font-bold text-primary-foreground">
+          <div className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/60 font-bold text-primary-foreground shadow-sm">
             Φ
           </div>
           <div className="leading-tight">
@@ -214,25 +248,108 @@ export function AppSidebar({
       <SidebarFooter className="border-t">
         <SidebarMenu>
           <SidebarMenuItem>
-            <div className="flex items-center gap-2 px-2 py-1.5 text-sm">
-              <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium">
-                {user.name?.[0]?.toUpperCase() ?? "?"}
-              </div>
-              <span className="truncate text-muted-foreground">
-                {user.name || user.email}
-              </span>
-            </div>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <form action={logout}>
-              <SidebarMenuButton type="submit">
-                <LogOutIcon />
-                <span>Αποσύνδεση</span>
-              </SidebarMenuButton>
-            </form>
+            <NavUser user={user} />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
+  );
+}
+
+/** Ομάδες στοιχείων μενού χρήστη — προς το παρόν placeholders (σύντομα διαθέσιμα). */
+const MENU_GROUPS: { icon: LucideIcon; label: string }[][] = [
+  [
+    { icon: StarIcon, label: "Βαθμολογίες" },
+    { icon: TrophyIcon, label: "Αποτελέσματα Quiz" },
+  ],
+  [
+    { icon: ClipboardListIcon, label: "Εργασίες" },
+    { icon: UploadIcon, label: "Αποστολή αρχείου" },
+  ],
+  [
+    { icon: DownloadIcon, label: "Έκτακτα Αρχεία" },
+    { icon: InfoIcon, label: "Χρήσιμα" },
+  ],
+  [
+    { icon: PencilLineIcon, label: "Εξετάσεις" },
+    { icon: MessageSquareIcon, label: "Συνομιλία" },
+  ],
+];
+
+/** Το κουμπί με το όνομα κάτω-αριστερά· κλικ → μενού χρήστη. */
+function NavUser({ user }: { user: CurrentUser }) {
+  const { isMobile } = useSidebar();
+
+  const initial = user.name?.[0]?.toUpperCase() ?? "?";
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <SidebarMenuButton
+          size="lg"
+          className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+        >
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/60 text-xs font-semibold text-primary-foreground">
+            {initial}
+          </div>
+          <div className="grid flex-1 text-left leading-tight">
+            <span className="truncate text-sm font-medium">
+              {user.name || user.email}
+            </span>
+            {user.name && (
+              <span className="truncate text-xs text-muted-foreground">
+                {user.email}
+              </span>
+            )}
+          </div>
+          <ChevronsUpDownIcon className="ml-auto size-4 shrink-0 opacity-60" />
+        </SidebarMenuButton>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent
+        side={isMobile ? "bottom" : "top"}
+        align="start"
+        sideOffset={8}
+        className="w-(--radix-dropdown-menu-trigger-width) min-w-56"
+      >
+        <DropdownMenuLabel className="flex items-center gap-2 py-2 font-normal">
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/60 text-xs font-semibold text-primary-foreground">
+            {initial}
+          </div>
+          <div className="grid flex-1 text-left leading-tight">
+            <span className="truncate text-sm font-medium">
+              {user.name || user.email}
+            </span>
+            {user.name && (
+              <span className="truncate text-xs text-muted-foreground">
+                {user.email}
+              </span>
+            )}
+          </div>
+        </DropdownMenuLabel>
+
+        {MENU_GROUPS.map((group, i) => (
+          <Fragment key={i}>
+            <DropdownMenuSeparator />
+            {group.map(({ icon: Icon, label }) => (
+              <DropdownMenuItem
+                key={label}
+                onSelect={() => toast.info(`${label} — σύντομα διαθέσιμο`)}
+              >
+                <Icon />
+                {label}
+              </DropdownMenuItem>
+            ))}
+          </Fragment>
+        ))}
+
+        <DropdownMenuSeparator />
+
+        <DropdownMenuItem variant="destructive" onSelect={() => logout()}>
+          <LogOutIcon />
+          Αποσύνδεση
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

@@ -9,22 +9,29 @@ import { createAdminClient, createSessionClient } from "@/lib/appwrite/server";
 
 export type LoginState = { error: string | null };
 
+/**
+ * Ο μαθητής μπαίνει μόνο με έναν μοναδικό κωδικό. Στο Appwrite ο κάθε χρήστης
+ * έχει ψεύτικο email `<κωδικός>@myphysics.local` και ο ίδιος ο κωδικός = password.
+ */
+const LOGIN_EMAIL_DOMAIN = "myphysics.local";
+
 export async function login(
   _prev: LoginState,
   formData: FormData,
 ): Promise<LoginState> {
-  const email = String(formData.get("email") ?? "").trim();
-  const password = String(formData.get("password") ?? "");
+  const code = String(formData.get("code") ?? "").trim();
 
-  if (!email || !password) {
-    return { error: "Συμπλήρωσε email και κωδικό." };
+  if (!code) {
+    return { error: "Γράψε τον κωδικό σου." };
   }
+
+  const email = `${code.toLowerCase()}@${LOGIN_EMAIL_DOMAIN}`;
 
   try {
     const { account } = createAdminClient();
     const session = await account.createEmailPasswordSession({
       email,
-      password,
+      password: code,
     });
 
     (await cookies()).set(SESSION_COOKIE, session.secret, {
@@ -46,7 +53,7 @@ export async function login(
         err.type === "user_not_found" ||
         err.type === "user_blocked"
       ) {
-        return { error: "Λάθος email ή κωδικός." };
+        return { error: "Λάθος κωδικός." };
       }
 
       // Οτιδήποτε άλλο (λάθος API key/scope, λάθος project, endpoint κ.λπ.)

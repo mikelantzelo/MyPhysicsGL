@@ -10,7 +10,7 @@ export default async function DashboardPage() {
 
   if (!user.level) {
     return (
-      <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
+      <div className="rounded-xl border border-dashed bg-muted/40 p-8 text-center text-muted-foreground">
         Ο λογαριασμός σου δεν έχει ακόμα τάξη. Επικοινώνησε με τον καθηγητή σου.
       </div>
     );
@@ -21,7 +21,7 @@ export default async function DashboardPage() {
   if (tree[0]) redirect(`/n/${tree[0].id}`);
 
   return (
-    <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
+    <div className="rounded-xl border border-dashed bg-muted/40 p-8 text-center text-muted-foreground">
       Δεν υπάρχει ακόμα περιεχόμενο για {LEVEL_LABELS[user.level]}.
     </div>
   );

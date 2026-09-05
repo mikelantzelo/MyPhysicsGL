@@ -49,13 +49,13 @@ export default async function NodePage({ params }: PageProps<"/n/[nodeId]">) {
             <li key={child.id}>
               <Link
                 href={`/n/${child.id}`}
-                className="flex items-center justify-between gap-2 rounded-lg border px-4 py-3 text-sm hover:bg-accent"
+                className="group flex items-center gap-3 rounded-xl border bg-card px-4 py-3 text-sm transition-colors hover:border-primary/40 hover:bg-primary/5"
               >
-                <span className="min-w-0 truncate">
-                  <span className="text-muted-foreground">{child.name}</span>{" "}
-                  {child.title}
+                <span className="inline-flex shrink-0 items-center rounded-md bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary">
+                  {child.name}
                 </span>
-                <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground" />
+                <span className="min-w-0 flex-1 truncate">{child.title}</span>
+                <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
               </Link>
             </li>
           ))}
