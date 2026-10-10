@@ -66,7 +66,12 @@ const TABS = [
   },
 ] as const;
 
-export function SectionTabs() {
+export function SectionTabs({
+  presentationUrl,
+}: {
+  /** Το index.html της παρουσίασης Storyline, αν υπάρχει. */
+  presentationUrl: string | null;
+}) {
   return (
     <Tabs
       defaultValue="presentation"
@@ -91,14 +96,25 @@ export function SectionTabs() {
           value={value}
           className="flex-1 min-h-0 data-[state=active]:flex data-[state=active]:flex-col"
         >
-          <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-xl border border-dashed bg-muted/40 p-6 text-center text-sm text-muted-foreground">
-            <span
-              className={`flex size-12 items-center justify-center rounded-full ${bubble}`}
-            >
-              <Icon className="size-6" />
-            </span>
-            «{label}» — σύντομα διαθέσιμο
-          </div>
+          {value === "presentation" && presentationUrl ? (
+            <iframe
+              key={presentationUrl}
+              src={presentationUrl}
+              title={label}
+              allow="autoplay; fullscreen"
+              allowFullScreen
+              className="w-full flex-1 rounded-xl border bg-white"
+            />
+          ) : (
+            <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-xl border border-dashed bg-muted/40 p-6 text-center text-sm text-muted-foreground">
+              <span
+                className={`flex size-12 items-center justify-center rounded-full ${bubble}`}
+              >
+                <Icon className="size-6" />
+              </span>
+              «{label}» — σύντομα διαθέσιμο
+            </div>
+          )}
         </TabsContent>
       ))}
     </Tabs>
