@@ -19,13 +19,15 @@ export async function login(
   _prev: LoginState,
   formData: FormData,
 ): Promise<LoginState> {
-  const code = String(formData.get("code") ?? "").trim();
+  // Οι κωδικοί είναι πεζοί· κανονικοποιούμε ώστε email ΚΑΙ password να ταιριάζουν
+  // ακόμα κι αν ο μαθητής (ή το κινητό) γράψει κεφαλαία.
+  const code = String(formData.get("code") ?? "").trim().toLowerCase();
 
   if (!code) {
     return { error: "Γράψε τον κωδικό σου." };
   }
 
-  const email = `${code.toLowerCase()}@${LOGIN_EMAIL_DOMAIN}`;
+  const email = `${code}@${LOGIN_EMAIL_DOMAIN}`;
 
   try {
     const { account } = createAdminClient();
@@ -75,7 +77,7 @@ export async function logout() {
   try {
     const { account, hasSession } = await createSessionClient();
     if (hasSession) {
-      await account.deleteSession("current");
+      await account.deleteSession({ sessionId: "current" });
     }
   } catch {
     // Ό,τι κι αν συμβεί, καθαρίζουμε το cookie παρακάτω.

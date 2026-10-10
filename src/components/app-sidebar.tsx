@@ -56,6 +56,28 @@ function subtreeHasId(node: NodeTree, id: string | null): boolean {
   return node.children.some((child) => subtreeHasId(child, id));
 }
 
+function subtreeHasAny(node: NodeTree, ids: Set<string>): boolean {
+  if (ids.has(node.id)) return true;
+  return node.children.some((child) => subtreeHasAny(child, ids));
+}
+
+/** Χρώμα για την παράγραφο που διδάσκεται τώρα (πίνακας `active`). */
+const LIVE_CLASS =
+  "bg-amber-500/15 text-amber-800 font-medium hover:bg-amber-500/25 dark:text-amber-300";
+
+/** Τελεία που «πάλλεται» δίπλα στην ενεργή παράγραφο. */
+function LiveDot() {
+  return (
+    <span
+      className="relative ml-auto flex size-2 shrink-0"
+      aria-label="Τρέχουσα παράγραφος"
+    >
+      <span className="absolute inline-flex size-full animate-ping rounded-full bg-amber-500 opacity-60" />
+      <span className="relative inline-flex size-2 rounded-full bg-amber-500" />
+    </span>
+  );
+}
+
 function nodeLabel(node: NodeTree) {
   return `${node.name} ${node.title}`.trim();
 }
@@ -88,11 +110,14 @@ function NavLink({
 function NavNode({
   node,
   activeId,
+  liveIds,
 }: {
   node: NodeTree;
   activeId: string | null;
+  liveIds: Set<string>;
 }) {
   const isActive = node.id === activeId;
+  const isLive = liveIds.has(node.id);
   const hasChildren = node.children.length > 0;
 
   const activeClass =
@@ -101,9 +126,14 @@ function NavNode({
   if (!hasChildren) {
     return (
       <SidebarMenuSubItem>
-        <SidebarMenuSubButton asChild isActive={isActive} className={activeClass}>
+        <SidebarMenuSubButton
+          asChild
+          isActive={isActive}
+          className={`${isLive ? LIVE_CLASS : ""} ${activeClass}`}
+        >
           <NavLink href={`/n/${node.id}`}>
             <span className="truncate">{nodeLabel(node)}</span>
+            {isLive && <LiveDot />}
           </NavLink>
         </SidebarMenuSubButton>
       </SidebarMenuSubItem>
@@ -113,17 +143,20 @@ function NavNode({
   return (
     <SidebarMenuSubItem>
       <Collapsible
-        defaultOpen={subtreeHasId(node, activeId)}
+        defaultOpen={
+          subtreeHasId(node, activeId) || subtreeHasAny(node, liveIds)
+        }
         className="group/node"
       >
         <div className="flex items-center gap-1">
           <SidebarMenuSubButton
             asChild
             isActive={isActive}
-            className={`flex-1 ${activeClass}`}
+            className={`flex-1 ${isLive ? LIVE_CLASS : ""} ${activeClass}`}
           >
             <NavLink href={`/n/${node.id}`}>
               <span className="truncate">{nodeLabel(node)}</span>
+              {isLive && <LiveDot />}
             </NavLink>
           </SidebarMenuSubButton>
           <CollapsibleTrigger
@@ -136,7 +169,12 @@ function NavNode({
         <CollapsibleContent>
           <SidebarMenuSub>
             {node.children.map((child) => (
-              <NavNode key={child.id} node={child} activeId={activeId} />
+              <NavNode
+                key={child.id}
+                node={child}
+                activeId={activeId}
+                liveIds={liveIds}
+              />
             ))}
           </SidebarMenuSub>
         </CollapsibleContent>
@@ -149,16 +187,21 @@ function NavNode({
 function ChapterNode({
   node,
   activeId,
+  liveIds,
 }: {
   node: NodeTree;
   activeId: string | null;
+  liveIds: Set<string>;
 }) {
   const isActive = node.id === activeId;
+  const isLive = liveIds.has(node.id);
   const hasChildren = node.children.length > 0;
 
   return (
     <Collapsible
-      defaultOpen={subtreeHasId(node, activeId)}
+      defaultOpen={
+        subtreeHasId(node, activeId) || subtreeHasAny(node, liveIds)
+      }
       className="group/chapter"
     >
       <SidebarMenuItem>
@@ -166,10 +209,11 @@ function ChapterNode({
           <SidebarMenuButton
             asChild
             isActive={isActive}
-            className="flex-1 data-[active=true]:bg-sidebar-primary/10 data-[active=true]:text-sidebar-primary"
+            className={`flex-1 ${isLive ? LIVE_CLASS : ""} data-[active=true]:bg-sidebar-primary/10 data-[active=true]:text-sidebar-primary`}
           >
             <NavLink href={`/n/${node.id}`}>
               <span className="truncate font-medium">{nodeLabel(node)}</span>
+              {isLive && <LiveDot />}
             </NavLink>
           </SidebarMenuButton>
           {hasChildren && (
@@ -185,7 +229,12 @@ function ChapterNode({
           <CollapsibleContent>
             <SidebarMenuSub>
               {node.children.map((child) => (
-                <NavNode key={child.id} node={child} activeId={activeId} />
+                <NavNode
+                key={child.id}
+                node={child}
+                activeId={activeId}
+                liveIds={liveIds}
+              />
               ))}
             </SidebarMenuSub>
           </CollapsibleContent>
@@ -198,11 +247,15 @@ function ChapterNode({
 export function AppSidebar({
   user,
   tree,
+  liveIds,
 }: {
   user: CurrentUser;
   tree: NodeTree[];
+  /** $id των κόμβων που είναι ενεργοί για το τμήμα του μαθητή. */
+  liveIds: string[];
 }) {
   const pathname = usePathname();
+  const live = new Set(liveIds);
   const activeId = pathname.startsWith("/n/")
     ? decodeURIComponent(pathname.slice(3))
     : null;
@@ -239,6 +292,7 @@ export function AppSidebar({
                 key={chapter.id}
                 node={chapter}
                 activeId={activeId}
+                liveIds={live}
               />
             ))}
           </SidebarMenu>

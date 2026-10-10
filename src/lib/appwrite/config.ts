@@ -21,6 +21,9 @@ export const appwriteConfig = {
   databaseId: required("APPWRITE_DATABASE_ID"),
   tables: {
     nodes: process.env.APPWRITE_TABLE_NODES ?? "nodes",
+    student: "student",
+    sectionStudents: "sectionCrossRefStudents",
+    active: "active",
   },
 } as const;
 

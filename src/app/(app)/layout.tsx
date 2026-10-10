@@ -10,7 +10,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { getUser } from "@/lib/auth";
-import { getNodeTree } from "@/lib/data";
+import { getActiveNodeIds, getNodeTree } from "@/lib/data";
 
 export default async function AppLayout({
   children,
@@ -20,11 +20,14 @@ export default async function AppLayout({
   const user = await getUser();
   if (!user) redirect("/login");
 
-  const tree = user.level ? await getNodeTree(user.level) : [];
+  const [tree, liveIds] = await Promise.all([
+    user.level ? getNodeTree(user.level) : [],
+    getActiveNodeIds(user.id),
+  ]);
 
   return (
     <SidebarProvider>
-      <AppSidebar user={user} tree={tree} />
+      <AppSidebar user={user} tree={tree} liveIds={liveIds} />
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b bg-background/95 px-3 backdrop-blur sm:px-4">
           <SidebarTrigger />
@@ -40,7 +43,7 @@ export default async function AppLayout({
             <ThemeToggle />
           </div>
         </header>
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col p-3 sm:p-4 md:p-6">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col p-2 sm:p-3">
           {children}
         </div>
       </SidebarInset>

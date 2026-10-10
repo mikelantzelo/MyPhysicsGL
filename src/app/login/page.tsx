@@ -13,7 +13,7 @@ export default async function LoginPage() {
   if (user) redirect("/");
 
   return (
-    <main className="relative flex min-h-full items-center justify-center overflow-hidden bg-[#0a0f1c] p-4">
+    <main className="relative flex min-h-svh flex-1 items-center justify-center overflow-hidden bg-[#0a0f1c] p-4">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_90%_at_25%_-10%,#1c2b48_0%,#0f1a30_45%,#0a0f1c_75%)]"

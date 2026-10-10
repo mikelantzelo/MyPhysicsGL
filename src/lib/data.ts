@@ -99,3 +99,50 @@ export async function getNode(
 
   return { node, ancestors, children };
 }
+
+/**
+ * Οι «ενεργές» παράγραφοι (αυτές που διδάσκονται τώρα) για τον μαθητή.
+ * Αλυσίδα: Appwrite user → `student.authUserId` → `sectionCrossRefStudents` →
+ * τμήμα(τα) → `active` (μία γραμμή ανά τμήμα· στη στήλη `active` το $id του κόμβου).
+ * Αν ένα τμήμα έχει πολλές γραμμές, κρατάμε την πιο πρόσφατα ενημερωμένη.
+ */
+export async function getActiveNodeIds(userId: string): Promise<string[]> {
+  const { tables } = createAdminClient();
+  const { databaseId } = appwriteConfig;
+
+  const students = await tables.listRows({
+    databaseId,
+    tableId: appwriteConfig.tables.student,
+    queries: [Query.equal("authUserId", userId), Query.limit(1)],
+  });
+  const studentId = students.rows[0]?.id as number | undefined;
+  if (studentId == null) return [];
+
+  const links = await tables.listRows({
+    databaseId,
+    tableId: appwriteConfig.tables.sectionStudents,
+    queries: [Query.equal("idStudent", studentId), Query.limit(100)],
+  });
+  const sectionIds = links.rows.map((row) => row.idSection as number);
+  if (sectionIds.length === 0) return [];
+
+  const active = await tables.listRows({
+    databaseId,
+    tableId: appwriteConfig.tables.active,
+    queries: [
+      Query.equal("idSection", sectionIds),
+      Query.orderDesc("$updatedAt"),
+      Query.limit(100),
+    ],
+  });
+
+  const latestPerSection = new Map<number, string>();
+  for (const row of active.rows) {
+    const section = row.idSection as number;
+    const nodeId = row.active as string | null;
+    if (nodeId && !latestPerSection.has(section)) {
+      latestPerSection.set(section, nodeId);
+    }
+  }
+  return [...new Set(latestPerSection.values())];
+}
