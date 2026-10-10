@@ -67,10 +67,10 @@ const TABS = [
 ] as const;
 
 export function SectionTabs({
-  presentationUrl,
+  urls,
 }: {
-  /** Το index.html της παρουσίασης Storyline, αν υπάρχει. */
-  presentationUrl: string | null;
+  /** Το index.html ανά καρτέλα (π.χ. presentation, theory), όσα υπάρχουν. */
+  urls: Partial<Record<(typeof TABS)[number]["value"], string>>;
 }) {
   return (
     <Tabs
@@ -96,10 +96,10 @@ export function SectionTabs({
           value={value}
           className="flex-1 min-h-0 data-[state=active]:flex data-[state=active]:flex-col"
         >
-          {value === "presentation" && presentationUrl ? (
+          {urls[value] ? (
             <iframe
-              key={presentationUrl}
-              src={presentationUrl}
+              key={urls[value]}
+              src={urls[value]}
               title={label}
               allow="autoplay; fullscreen"
               allowFullScreen
