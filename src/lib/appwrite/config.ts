@@ -24,6 +24,8 @@ export const appwriteConfig = {
     student: "student",
     sectionStudents: "sectionCrossRefStudents",
     active: "active",
+    question: "question",
+    result: "result",
   },
 } as const;
 

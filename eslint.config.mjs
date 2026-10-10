@@ -13,6 +13,14 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  // Κώδικας που μεταφέρθηκε αυτούσιος από το repo του quiz (έχει δικά του tests).
+  {
+    files: ["src/components/quiz/**"],
+    rules: {
+      "react-hooks/set-state-in-effect": "off",
+      "@next/next/no-img-element": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

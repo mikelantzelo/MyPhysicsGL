@@ -4,12 +4,17 @@ import {
   BookOpenIcon,
   ClipboardListIcon,
   FileTextIcon,
-  MonitorPlayIcon,
   PresentationIcon,
   SparklesIcon,
 } from "lucide-react";
 
+import { lazy, Suspense } from "react";
+import { Loader2Icon } from "lucide-react";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+/** Το quiz (dnd-kit, KaTeX, …) κατεβαίνει μόνο όταν ανοίξει η καρτέλα του. */
+const QuizApp = lazy(() => import("@/components/quiz/QuizApp"));
 
 /**
  * Κάθε tab έχει δικό του χρώμα όταν είναι ενεργό. Οι κλάσεις είναι γραμμένες
@@ -23,14 +28,6 @@ const TABS = [
     active:
       "data-[state=active]:border-blue-500/40 data-[state=active]:bg-blue-500/10 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400",
     bubble: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
-  },
-  {
-    value: "simulation",
-    label: "Προσομοίωση",
-    icon: MonitorPlayIcon,
-    active:
-      "data-[state=active]:border-cyan-500/40 data-[state=active]:bg-cyan-500/10 data-[state=active]:text-cyan-600 dark:data-[state=active]:text-cyan-400",
-    bubble: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400",
   },
   {
     value: "ai-video",
@@ -68,9 +65,12 @@ const TABS = [
 
 export function SectionTabs({
   urls,
+  quiz,
 }: {
   /** Το index.html ανά καρτέλα (π.χ. presentation, theory), όσα υπάρχουν. */
   urls: Partial<Record<(typeof TABS)[number]["value"], string>>;
+  /** Υπάρχουν ερωτήσεις για την παράγραφο → το quiz παίζει μέσα στην καρτέλα. */
+  quiz: { idStudent: number; idChapter: string } | null;
 }) {
   return (
     <Tabs
@@ -96,7 +96,17 @@ export function SectionTabs({
           value={value}
           className="flex-1 min-h-0 data-[state=active]:flex data-[state=active]:flex-col"
         >
-          {urls[value] ? (
+          {value === "quiz" && quiz ? (
+            <Suspense
+              fallback={
+                <div className="flex flex-1 items-center justify-center">
+                  <Loader2Icon className="size-8 animate-spin text-primary" />
+                </div>
+              }
+            >
+              <QuizApp idStudent={quiz.idStudent} idChapter={quiz.idChapter} />
+            </Suspense>
+          ) : urls[value] ? (
             <iframe
               key={urls[value]}
               src={urls[value]}

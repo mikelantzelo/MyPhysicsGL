@@ -4,7 +4,7 @@ import { ChevronRightIcon } from "lucide-react";
 
 import { SectionTabs } from "@/components/section-tabs";
 import { getUser } from "@/lib/auth";
-import { getNode } from "@/lib/data";
+import { countQuizQuestions, getNode, getStudentId } from "@/lib/data";
 import { findAllContent } from "@/lib/presentations";
 
 export default async function NodePage({ params }: PageProps<"/n/[nodeId]">) {
@@ -19,7 +19,14 @@ export default async function NodePage({ params }: PageProps<"/n/[nodeId]">) {
 
   const { node, children } = data;
   const isLeaf = children.length === 0;
-  const urls = isLeaf ? await findAllContent(node) : {};
+  const [urls, quizCount, idStudent] = isLeaf
+    ? await Promise.all([
+        findAllContent(node),
+        countQuizQuestions(node.id),
+        getStudentId(user.id),
+      ])
+    : [{}, 0, null];
+  const quiz = quizCount > 0 ? { idStudent: idStudent ?? 0, idChapter: node.id } : null;
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-2">
@@ -58,7 +65,7 @@ export default async function NodePage({ params }: PageProps<"/n/[nodeId]">) {
           ))}
         </ul>
       ) : (
-        <SectionTabs urls={urls} />
+        <SectionTabs urls={urls} quiz={quiz} />
       )}
     </div>
   );

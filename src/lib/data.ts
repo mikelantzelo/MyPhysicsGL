@@ -110,12 +110,7 @@ export async function getActiveNodeIds(userId: string): Promise<string[]> {
   const { tables } = createAdminClient();
   const { databaseId } = appwriteConfig;
 
-  const students = await tables.listRows({
-    databaseId,
-    tableId: appwriteConfig.tables.student,
-    queries: [Query.equal("authUserId", userId), Query.limit(1)],
-  });
-  const studentId = students.rows[0]?.id as number | undefined;
+  const studentId = await getStudentId(userId);
   if (studentId == null) return [];
 
   const links = await tables.listRows({
@@ -145,4 +140,26 @@ export async function getActiveNodeIds(userId: string): Promise<string[]> {
     }
   }
   return [...new Set(latestPerSection.values())];
+}
+
+/** Το `student.id` του λογαριασμού (μέσω `student.authUserId`), ή null αν δεν έχει συνδεθεί με μαθητή. */
+export async function getStudentId(userId: string): Promise<number | null> {
+  const { tables } = createAdminClient();
+  const res = await tables.listRows({
+    databaseId: appwriteConfig.databaseId,
+    tableId: appwriteConfig.tables.student,
+    queries: [Query.equal("authUserId", userId), Query.limit(1)],
+  });
+  return (res.rows[0]?.id as number | undefined) ?? null;
+}
+
+/** Πόσες ερωτήσεις quiz έχει ένας κόμβος (στήλη `question.idChapter`). */
+export async function countQuizQuestions(idChapter: string): Promise<number> {
+  const { tables } = createAdminClient();
+  const res = await tables.listRows({
+    databaseId: appwriteConfig.databaseId,
+    tableId: appwriteConfig.tables.question,
+    queries: [Query.equal("idChapter", idChapter), Query.limit(1)],
+  });
+  return res.total;
 }
