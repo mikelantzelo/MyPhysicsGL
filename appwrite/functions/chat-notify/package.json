@@ -1,7 +1,7 @@
 {
   "name": "chat-notify",
   "version": "1.0.0",
-  "description": "Web Push για κάθε νέο μήνυμα συνομιλίας καθηγητή ↔ μαθητή (MyPhysicsLyk).",
+  "description": "Web Push για κάθε νέο μήνυμα συνομιλίας καθηγητή ↔ μαθητή (MyPhysicsGL).",
   "type": "module",
   "main": "src/main.js",
   "private": true,
