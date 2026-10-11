@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 
 import { fetchUnreadCount } from "@/app/chat-actions";
 import { AppSidebar } from "@/components/app-sidebar";
+import { PushBridge } from "@/components/chat/push-ui";
 import { UnreadBell } from "@/components/chat/unread-bell";
 import { ThemeToggle } from "@/components/theme-toggle";
 import {
@@ -28,6 +29,7 @@ export default async function AppLayout({
 
   return (
     <SidebarProvider>
+      <PushBridge />
       <AppSidebar user={user} tree={tree} liveIds={liveIds} />
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b bg-background/95 px-3 backdrop-blur sm:px-4">

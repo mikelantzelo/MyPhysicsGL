@@ -43,3 +43,7 @@ next-env.d.ts
 
 # Claude Code: προσωπικές ρυθμίσεις (άδειες) — όχι στο repo
 .claude/settings.local.json
+
+# Appwrite Functions: εξαρτήσεις και πακέτα deploy
+appwrite/functions/*/node_modules
+appwrite/functions/*.tar.gz

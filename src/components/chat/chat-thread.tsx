@@ -6,7 +6,10 @@ import { toast } from "sonner";
 
 import type { ChatMessage, Sender } from "@/lib/chat";
 
-const POLL_MS = 4000;
+import { CHAT_EVENT } from "./push-client";
+
+/** Εφεδρικός έλεγχος· τα νέα μηνύματα έρχονται κανονικά αμέσως μέσω push. */
+const POLL_MS = 20_000;
 const MAX = 2000;
 
 const dayLabel = (iso: string) => {
@@ -22,7 +25,8 @@ const timeLabel = (iso: string) =>
 
 /**
  * Μια συνομιλία καθηγητή ↔ μαθητή. `me` = ποιος γράφει από αυτή την πλευρά.
- * Νέα μηνύματα: polling κάθε 4″ μόνο όσο η καρτέλα είναι ορατή.
+ * Νέα μηνύματα: αμέσως όταν φτάνει push (service worker), αλλιώς έλεγχος κάθε
+ * 20″ μόνο όσο η καρτέλα είναι ορατή.
  */
 export function ChatThread({
   me,
@@ -75,11 +79,17 @@ export function ChatThread({
         tick();
       }
     };
+    const onPush = () => {
+      clearTimeout(timer);
+      tick();
+    };
     document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener(CHAT_EVENT, onPush);
     return () => {
       stopped = true;
       clearTimeout(timer);
       document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener(CHAT_EVENT, onPush);
     };
   }, [load, merge]);
 

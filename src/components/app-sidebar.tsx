@@ -21,6 +21,7 @@ import { toast } from "sonner";
 
 import { logout } from "@/app/actions";
 import { setAdminLevel } from "@/app/admin-actions";
+import { disablePush } from "@/components/chat/push-client";
 import { ADMIN_LINKS } from "@/components/admin/admin-nav";
 import { NativeSelect } from "@/components/ui/native-select";
 import {
@@ -470,7 +471,14 @@ function NavUser({ user }: { user: CurrentUser }) {
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem variant="destructive" onSelect={() => logout()}>
+        <DropdownMenuItem
+          variant="destructive"
+          onSelect={async () => {
+            // Σε κοινόχρηστο υπολογιστή ο επόμενος να μη λαμβάνει ειδοποιήσεις μας.
+            await disablePush().catch(() => {});
+            await logout();
+          }}
+        >
           <LogOutIcon />
           Αποσύνδεση
         </DropdownMenuItem>

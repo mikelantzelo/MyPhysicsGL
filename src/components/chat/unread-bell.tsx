@@ -7,9 +7,12 @@ import { BellIcon } from "lucide-react";
 
 import { fetchUnreadCount } from "@/app/chat-actions";
 
-const REFRESH_MS = 60_000;
+import { CHAT_EVENT } from "./push-client";
 
-/** Καμπανάκι με τα αδιάβαστα μηνύματα· ανανεώνεται σε κάθε πλοήγηση και κάθε λεπτό. */
+/** Εφεδρικό· κανονικά ενημερώνεται αμέσως με push και σε κάθε πλοήγηση. */
+const REFRESH_MS = 5 * 60_000;
+
+/** Καμπανάκι με τα αδιάβαστα μηνύματα· ανανεώνεται με push, σε κάθε πλοήγηση και κάθε 5′. */
 export function UnreadBell({ initial, href }: { initial: number; href: string }) {
   const [count, setCount] = useState(initial);
   const pathname = usePathname();
@@ -25,10 +28,12 @@ export function UnreadBell({ initial, href }: { initial: number; href: string })
     refresh();
     const t = setInterval(refresh, REFRESH_MS);
     document.addEventListener("visibilitychange", refresh);
+    window.addEventListener(CHAT_EVENT, refresh);
     return () => {
       alive = false;
       clearInterval(t);
       document.removeEventListener("visibilitychange", refresh);
+      window.removeEventListener(CHAT_EVENT, refresh);
     };
   }, [pathname]);
 

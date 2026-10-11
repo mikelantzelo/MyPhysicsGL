@@ -9,8 +9,9 @@ import { NativeSelect } from "@/components/ui/native-select";
 import type { ChatMessage, InboxItem } from "@/lib/chat";
 
 import { ChatThread } from "./chat-thread";
+import { CHAT_EVENT } from "./push-client";
 
-const INBOX_REFRESH_MS = 15000;
+const INBOX_REFRESH_MS = 60_000;
 
 const shortTime = (iso: string | null) => {
   if (!iso) return "";
@@ -35,14 +36,19 @@ export function TeacherThread({
   return <ChatThread me="teacher" otherName={name} initial={initial} load={load} send={send} />;
 }
 
-/** Λίστα συνομιλιών· ανανεώνεται μόνη της κάθε 15″ (μόνο αν η καρτέλα είναι ορατή). */
+/** Λίστα συνομιλιών· ανανεώνεται αμέσως με push, αλλιώς κάθε 60″ (αν η καρτέλα είναι ορατή). */
 export function Inbox({ items, active }: { items: InboxItem[]; active: number | null }) {
   const router = useRouter();
   useEffect(() => {
+    const refresh = () => router.refresh();
     const t = setInterval(() => {
-      if (!document.hidden) router.refresh();
+      if (!document.hidden) refresh();
     }, INBOX_REFRESH_MS);
-    return () => clearInterval(t);
+    window.addEventListener(CHAT_EVENT, refresh);
+    return () => {
+      clearInterval(t);
+      window.removeEventListener(CHAT_EVENT, refresh);
+    };
   }, [router]);
 
   if (!items.length) {

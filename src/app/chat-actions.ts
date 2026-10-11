@@ -1,5 +1,7 @@
 "use server";
 
+import { headers } from "next/headers";
+
 import { requireAdmin } from "@/lib/admin";
 import { getUser } from "@/lib/auth";
 import {
@@ -11,6 +13,11 @@ import {
   type ChatMessage,
 } from "@/lib/chat";
 import { getStudentId } from "@/lib/data";
+import {
+  deleteSubscription,
+  saveSubscription,
+  type PushSubscriptionInput,
+} from "@/lib/push";
 
 /**
  * Ο μαθητής βλέπει ΜΟΝΟ τη δική του συνομιλία: το idStudent βγαίνει από τη
@@ -53,6 +60,29 @@ export async function sendToStudent(idStudent: number, text: string): Promise<Ch
   await requireAdmin();
   if (!Number.isInteger(idStudent)) throw new Error("Μη έγκυρος μαθητής.");
   return sendMessage(idStudent, "teacher", text);
+}
+
+// ── Ειδοποιήσεις (Web Push) ──────────────────────────────────────────────
+
+/** Ο browser ενεργοποίησε ειδοποιήσεις → η συνδρομή του αποθηκεύεται για τον συνδεδεμένο χρήστη. */
+export async function registerPush(sub: PushSubscriptionInput): Promise<{ ok: boolean }> {
+  const user = await getUser();
+  if (!user) return { ok: false };
+  const idStudent = user.isAdmin ? null : await getStudentId(user.id);
+  if (!user.isAdmin && idStudent == null) return { ok: false };
+  const ua = (await headers()).get("user-agent") ?? "";
+  await saveSubscription(
+    sub,
+    { userId: user.id, role: user.isAdmin ? "teacher" : "student", idStudent },
+    ua,
+  );
+  return { ok: true };
+}
+
+/** Πριν την αποσύνδεση: αυτός ο browser να μη λαμβάνει πια ειδοποιήσεις του χρήστη. */
+export async function unregisterPush(endpoint: string) {
+  const user = await getUser();
+  if (user) await deleteSubscription(endpoint, user.id);
 }
 
 // ── Σήμα αδιάβαστων (sidebar) ────────────────────────────────────────────

@@ -3,6 +3,7 @@ import { MessageSquareIcon } from "lucide-react";
 
 import { fetchMyMessages, sendMyMessage } from "@/app/chat-actions";
 import { ChatThread } from "@/components/chat/chat-thread";
+import { NotificationsToggle } from "@/components/chat/push-ui";
 import { getUser } from "@/lib/auth";
 import { getThread, markRead } from "@/lib/chat";
 import { getStudentId } from "@/lib/data";
@@ -28,10 +29,13 @@ export default async function ChatPage() {
 
   return (
     <div className="flex h-[calc(100svh-5.5rem)] min-h-80 flex-col gap-2">
-      <h1 className="flex items-center gap-2 text-base font-semibold sm:text-lg">
-        <MessageSquareIcon className="size-5 text-primary" />
-        Συνομιλία με τον καθηγητή
-      </h1>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h1 className="flex items-center gap-2 text-base font-semibold sm:text-lg">
+          <MessageSquareIcon className="size-5 text-primary" />
+          Συνομιλία με τον καθηγητή
+        </h1>
+        <NotificationsToggle />
+      </div>
       <ChatThread
         me="student"
         otherName="τον καθηγητή"

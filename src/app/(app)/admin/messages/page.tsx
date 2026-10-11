@@ -1,3 +1,4 @@
+import { NotificationsToggle } from "@/components/chat/push-ui";
 import { Inbox, NewMessagePicker, TeacherThread } from "@/components/chat/teacher-chat";
 import { getThread, listInbox, listMessageableStudents, markRead } from "@/lib/chat";
 
@@ -30,8 +31,9 @@ export default async function AdminMessagesPage({
           selected ? "hidden md:flex" : ""
         }`}
       >
-        <div className="border-b p-2">
+        <div className="flex flex-col gap-2 border-b p-2">
           <NewMessagePicker students={students} />
+          <NotificationsToggle />
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto">
           <Inbox items={inbox} active={selected} />
