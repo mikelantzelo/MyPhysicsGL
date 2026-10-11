@@ -88,6 +88,8 @@
 }
 
 .dark {
+  /* Εγγενή στοιχεία (λίστες <select>, scrollbars) σε σκούρο. */
+  color-scheme: dark;
   --background: oklch(0.16 0.012 264);
   --foreground: oklch(0.97 0.006 264);
   --card: oklch(0.205 0.015 264);

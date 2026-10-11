@@ -1,7 +1,7 @@
 import "server-only";
 
 import { cookies } from "next/headers";
-import { Account, Client, TablesDB } from "node-appwrite";
+import { Account, Client, TablesDB, Users } from "node-appwrite";
 
 import { appwriteConfig, SESSION_COOKIE } from "./config";
 
@@ -22,6 +22,10 @@ export function createAdminClient() {
     },
     get tables() {
       return new TablesDB(client);
+    },
+    /** Λογαριασμοί χρηστών (μόνο για τη διαχείριση μαθητών του admin). */
+    get users() {
+      return new Users(client);
     },
   };
 }

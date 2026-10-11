@@ -49,11 +49,17 @@ export async function login(
         `Appwrite login error → code=${err.code} type=${err.type} message=${err.message}`,
       );
 
+      // Λογαριασμός απενεργοποιημένος από τον καθηγητή (Διαχείριση → Μαθητές).
+      if (err.type === "user_blocked") {
+        return {
+          error: "Ο λογαριασμός σου είναι απενεργοποιημένος. Μίλησε με τον καθηγητή σου.",
+        };
+      }
+
       // Πραγματικά λάθος στοιχεία χρήστη.
       if (
         err.type === "user_invalid_credentials" ||
-        err.type === "user_not_found" ||
-        err.type === "user_blocked"
+        err.type === "user_not_found"
       ) {
         return { error: "Λάθος κωδικός." };
       }

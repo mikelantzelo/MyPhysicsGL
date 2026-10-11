@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
-import { BellIcon } from "lucide-react";
 
+import { fetchUnreadCount } from "@/app/chat-actions";
 import { AppSidebar } from "@/components/app-sidebar";
+import { UnreadBell } from "@/components/chat/unread-bell";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Button } from "@/components/ui/button";
 import {
   SidebarInset,
   SidebarProvider,
@@ -20,9 +20,10 @@ export default async function AppLayout({
   const user = await getUser();
   if (!user) redirect("/login");
 
-  const [tree, liveIds] = await Promise.all([
+  const [tree, liveIds, unread] = await Promise.all([
     user.level ? getNodeTree(user.level) : [],
     getActiveNodeIds(user.id),
+    fetchUnreadCount(),
   ]);
 
   return (
@@ -32,14 +33,10 @@ export default async function AppLayout({
         <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b bg-background/95 px-3 backdrop-blur sm:px-4">
           <SidebarTrigger />
           <div className="ml-auto flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Ειδοποιήσεις"
-              disabled
-            >
-              <BellIcon className="size-4" />
-            </Button>
+            <UnreadBell
+              initial={unread}
+              href={user.isAdmin ? "/admin/messages" : "/chat"}
+            />
             <ThemeToggle />
           </div>
         </header>

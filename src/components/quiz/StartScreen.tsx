@@ -8,6 +8,7 @@ import { useMaxQuestions } from "@/components/quiz/hooks/useMaxQuestions";
 import { useState, useEffect } from "react";
 import { Loader2, Rocket, Timer, Trophy, HelpCircle, RefreshCcw } from "lucide-react";
 import { useParagraph } from "@/components/quiz/hooks/useParagraph";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 
 interface StartScreenProps {
@@ -19,6 +20,7 @@ interface StartScreenProps {
 function StartScreen({ idStudent, idChapter, onStartQuiz }: StartScreenProps) {
   const savedAttempt = readAttempt(attemptKey(idStudent, idChapter));
   useEffect(() => { setAttemptOwner(idStudent, idChapter); }, [idStudent, idChapter]);
+  const confirm = useConfirm();
   const [sliderValue, setSliderValue] = useState<number[]>([1]);
 
   const {
@@ -41,9 +43,19 @@ function StartScreen({ idStudent, idChapter, onStartQuiz }: StartScreenProps) {
   }, [maxQuestions]);
 
   const canStart = !!maxQuestions && sliderValue[0] >= 1 && sliderValue[0] <= maxQuestions;
-  const handleStart = () => {
+  const handleStart = async () => {
     if (!canStart) return;
-    if (savedAttempt && !window.confirm("Να ξεκινήσει νέα προσπάθεια και να διαγραφεί η προηγούμενη πρόοδος;")) return;
+    if (
+      savedAttempt &&
+      !(await confirm({
+        title: "Νέα προσπάθεια;",
+        description: "Η πρόοδος της προηγούμενης προσπάθειας θα διαγραφεί.",
+        confirmLabel: "Νέα προσπάθεια",
+        destructive: true,
+      }))
+    ) {
+      return;
+    }
     removeSession(attemptKey(idStudent, idChapter));
     setAttemptOwner(idStudent, idChapter);
     onStartQuiz(sliderValue[0]);

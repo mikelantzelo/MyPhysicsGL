@@ -99,6 +99,11 @@ export async function submitQuizResult(payload: {
 }): Promise<{ success: boolean; message: string }> {
   const { user } = await authorizedNode(payload.idChapter);
 
+  // Ο admin δοκιμάζει τα quiz χωρίς να γράφει βαθμολογίες.
+  if (user.isAdmin) {
+    return { success: true, message: "Προβολή admin — δεν αποθηκεύτηκε." };
+  }
+
   const idStudent = await getStudentId(user.id);
   if (idStudent == null) {
     return {

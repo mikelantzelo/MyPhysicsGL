@@ -31,3 +31,6 @@ export const appwriteConfig = {
 
 /** Όνομα του cookie όπου κρατάμε το session secret του Appwrite. */
 export const SESSION_COOKIE = "mpl_session";
+
+/** Η τάξη που έχει επιλέξει ο admin για προβολή. */
+export const ADMIN_LEVEL_COOKIE = "mpl_admin_level";

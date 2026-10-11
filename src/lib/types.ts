@@ -35,9 +35,14 @@ export type CurrentUser = {
   id: string;
   name: string;
   email: string;
-  /** Η τάξη του μαθητή, από το user label. null αν δεν έχει οριστεί. */
+  /**
+   * Η τάξη που βλέπει ο χρήστης: για μαθητή από το user label (null αν δεν έχει
+   * οριστεί)· για admin η τάξη που διάλεξε στο sidebar (cookie).
+   */
   level: Level | null;
   labels: string[];
+  /** Label `admin` στο Appwrite: πρόσβαση σε όλες τις τάξεις και στο /admin. */
+  isAdmin: boolean;
 };
 
 /**

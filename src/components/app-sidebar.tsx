@@ -1,8 +1,8 @@
 "use client";
 
-import { Fragment } from "react";
+import { Fragment, useOptimistic, useTransition } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   ChevronRightIcon,
   ChevronsUpDownIcon,
@@ -20,6 +20,9 @@ import {
 import { toast } from "sonner";
 
 import { logout } from "@/app/actions";
+import { setAdminLevel } from "@/app/admin-actions";
+import { ADMIN_LINKS } from "@/components/admin/admin-nav";
+import { NativeSelect } from "@/components/ui/native-select";
 import {
   Collapsible,
   CollapsibleContent,
@@ -48,7 +51,42 @@ import {
   SidebarMenuSubItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { LEVEL_LABELS, type CurrentUser, type NodeTree } from "@/lib/types";
+import {
+  LEVEL_LABELS,
+  LEVELS,
+  type CurrentUser,
+  type Level,
+  type NodeTree,
+} from "@/lib/types";
+
+/** Ο admin διαλέγει ποια τάξη βλέπει (μενού, καρτέλες, quiz). */
+function AdminLevelSelect({ level }: { level: Level | null }) {
+  const [pending, startTransition] = useTransition();
+  const [shown, setShown] = useOptimistic(level);
+  return (
+    <NativeSelect
+      aria-label="Τάξη προβολής"
+      value={shown ?? ""}
+      disabled={pending}
+      onChange={(e) => {
+        const next = e.target.value as Level;
+        startTransition(async () => {
+          setShown(next);
+          await setAdminLevel(next);
+        });
+      }}
+      size="sm"
+      wrapperClassName="-ml-1.5 mt-0.5"
+      className="border-transparent bg-transparent pl-1.5 text-muted-foreground hover:bg-sidebar-accent dark:bg-transparent"
+    >
+      {LEVELS.map((l) => (
+        <option key={l} value={l}>
+          {LEVEL_LABELS[l]}
+        </option>
+      ))}
+    </NativeSelect>
+  );
+}
 
 function subtreeHasId(node: NodeTree, id: string | null): boolean {
   if (!id) return false;
@@ -269,10 +307,14 @@ export function AppSidebar({
           </div>
           <div className="leading-tight">
             <div className="font-semibold">MyPhysics</div>
-            {user.level && (
-              <div className="text-xs text-muted-foreground">
-                {LEVEL_LABELS[user.level]}
-              </div>
+            {user.isAdmin ? (
+              <AdminLevelSelect level={user.level} />
+            ) : (
+              user.level && (
+                <div className="text-xs text-muted-foreground">
+                  {LEVEL_LABELS[user.level]}
+                </div>
+              )
             )}
           </div>
         </div>
@@ -297,6 +339,27 @@ export function AppSidebar({
             ))}
           </SidebarMenu>
         </SidebarGroup>
+        {user.isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Διαχείριση</SidebarGroupLabel>
+            <SidebarMenu>
+              {ADMIN_LINKS.map(({ href, label, icon: Icon }) => (
+                <SidebarMenuItem key={href}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith(href)}
+                    className="data-[active=true]:bg-sidebar-primary/10 data-[active=true]:text-sidebar-primary"
+                  >
+                    <NavLink href={href}>
+                      <Icon />
+                      <span>{label}</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroup>
+        )}
       </SidebarContent>
 
       <SidebarFooter className="border-t">
@@ -310,8 +373,8 @@ export function AppSidebar({
   );
 }
 
-/** Ομάδες στοιχείων μενού χρήστη — προς το παρόν placeholders (σύντομα διαθέσιμα). */
-const MENU_GROUPS: { icon: LucideIcon; label: string }[][] = [
+/** Ομάδες στοιχείων μενού χρήστη· όσα δεν έχουν `href` είναι ακόμα «σύντομα διαθέσιμα». */
+const MENU_GROUPS: { icon: LucideIcon; label: string; href?: string }[][] = [
   [
     { icon: StarIcon, label: "Βαθμολογίες" },
     { icon: TrophyIcon, label: "Αποτελέσματα Quiz" },
@@ -326,13 +389,14 @@ const MENU_GROUPS: { icon: LucideIcon; label: string }[][] = [
   ],
   [
     { icon: PencilLineIcon, label: "Εξετάσεις" },
-    { icon: MessageSquareIcon, label: "Συνομιλία" },
+    { icon: MessageSquareIcon, label: "Συνομιλία", href: "/chat" },
   ],
 ];
 
 /** Το κουμπί με το όνομα κάτω-αριστερά· κλικ → μενού χρήστη. */
 function NavUser({ user }: { user: CurrentUser }) {
-  const { isMobile } = useSidebar();
+  const { isMobile, setOpenMobile } = useSidebar();
+  const router = useRouter();
 
   const initial = user.name?.[0]?.toUpperCase() ?? "?";
 
@@ -385,10 +449,17 @@ function NavUser({ user }: { user: CurrentUser }) {
         {MENU_GROUPS.map((group, i) => (
           <Fragment key={i}>
             <DropdownMenuSeparator />
-            {group.map(({ icon: Icon, label }) => (
+            {group.map(({ icon: Icon, label, href }) => (
               <DropdownMenuItem
                 key={label}
-                onSelect={() => toast.info(`${label} — σύντομα διαθέσιμο`)}
+                onSelect={() => {
+                  if (!href) {
+                    toast.info(`${label} — σύντομα διαθέσιμο`);
+                    return;
+                  }
+                  if (isMobile) setOpenMobile(false);
+                  router.push(href);
+                }}
               >
                 <Icon />
                 {label}
