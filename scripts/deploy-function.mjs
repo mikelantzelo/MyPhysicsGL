@@ -1,7 +1,8 @@
 /**
- * Δημιουργεί/ενημερώνει και ανεβάζει το Appwrite Function «chat-notify».
+ * Δημιουργεί/ενημερώνει και ανεβάζει ένα Appwrite Function του appwrite/functions/.
  *
- *   node --env-file=.env.local scripts/deploy-chat-notify.mjs
+ *   node --env-file=.env.local scripts/deploy-function.mjs chat-notify
+ *   node --env-file=.env.local scripts/deploy-function.mjs exam-reminders
  *
  * Χρειάζεται API key με scopes functions.read, functions.write.
  * Παίρνει τα κλειδιά VAPID από το .env.local (VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY,
@@ -16,9 +17,9 @@ const require = createRequire(path.resolve("package.json"));
 const { Client, Functions, ID } = require("node-appwrite");
 const { InputFile } = require("node-appwrite/file");
 
-const FUNCTION_ID = "chat-notify";
-const SOURCE = path.resolve("appwrite/functions/chat-notify");
-const ARCHIVE = path.resolve("appwrite/functions/chat-notify.tar.gz");
+const FUNCTION_ID = process.argv[2];
+const SOURCE = path.resolve(`appwrite/functions/${FUNCTION_ID}`);
+const ARCHIVE = path.resolve(`appwrite/functions/${FUNCTION_ID}.tar.gz`);
 
 const env = (k) => {
   const v = process.env[k];
@@ -45,13 +46,29 @@ try {
   // Χωρίς δικαίωμα λίστας runtimes — μένει το node-22.
 }
 
+/** Ό,τι διαφέρει ανά function: όνομα, trigger (event ή schedule), χρόνος. */
+const FUNCTIONS = {
+  "chat-notify": {
+    name: "Ειδοποιήσεις συνομιλίας",
+    events: [`databases.${databaseId}.tables.messages.rows.*.create`],
+    timeout: 15,
+  },
+  "exam-reminders": {
+    name: "Υπενθυμίσεις τεστ & διαγωνισμάτων",
+    events: [],
+    schedule: "*/15 * * * *",
+    timeout: 60,
+  },
+};
+if (!FUNCTIONS[FUNCTION_ID]) {
+  throw new Error(`Άγνωστο function «${FUNCTION_ID}». Διαθέσιμα: ${Object.keys(FUNCTIONS).join(", ")}`);
+}
+
 const config = {
   functionId: FUNCTION_ID,
-  name: "Ειδοποιήσεις συνομιλίας",
   runtime,
-  execute: [], // κανείς δεν το εκτελεί απ' έξω — μόνο το event
-  events: [`databases.${databaseId}.tables.messages.rows.*.create`],
-  timeout: 15,
+  execute: [], // κανείς δεν το εκτελεί απ' έξω — μόνο το event/schedule
+  ...FUNCTIONS[FUNCTION_ID],
   enabled: true,
   logging: true,
   entrypoint: "src/main.js",
@@ -103,7 +120,7 @@ execFileSync(
 );
 const deployment = await functions.createDeployment({
   functionId: FUNCTION_ID,
-  code: InputFile.fromPath(ARCHIVE, "chat-notify.tar.gz"),
+  code: InputFile.fromPath(ARCHIVE, path.basename(ARCHIVE)),
   activate: true,
   entrypoint: config.entrypoint,
   commands: config.commands,
@@ -123,5 +140,5 @@ for (let i = 0; i < 90; i++) {
     process.exit(1);
   }
 }
-console.error("Το build αργεί — δες το Appwrite Console → Functions → chat-notify.");
+console.error(`Το build αργεί — δες το Appwrite Console → Functions → ${FUNCTION_ID}.`);
 process.exit(1);

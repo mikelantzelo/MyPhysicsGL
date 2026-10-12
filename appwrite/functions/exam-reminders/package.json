@@ -1,0 +1,15 @@
+{
+  "name": "exam-reminders",
+  "version": "1.0.0",
+  "description": "Web Push υπενθύμιση την παραμονή τεστ/διαγωνισμάτων (MyPhysicsGL).",
+  "type": "module",
+  "main": "src/main.js",
+  "private": true,
+  "dependencies": {
+    "node-appwrite": "^29.0.0",
+    "web-push": "^3.6.7"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

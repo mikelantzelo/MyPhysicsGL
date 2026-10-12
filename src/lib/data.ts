@@ -178,3 +178,14 @@ export async function getNodeById(nodeId: string): Promise<ContentNode | null> {
     return null;
   }
 }
+
+/** Τα τμήματα ενός μαθητή (`sectionCrossRefStudents`). */
+export async function getStudentSectionIds(idStudent: number): Promise<number[]> {
+  const { tables } = createAdminClient();
+  const res = await tables.listRows({
+    databaseId: appwriteConfig.databaseId,
+    tableId: appwriteConfig.tables.sectionStudents,
+    queries: [Query.equal("idStudent", idStudent), Query.limit(100)],
+  });
+  return res.rows.map((r) => r.idSection as number);
+}

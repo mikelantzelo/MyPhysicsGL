@@ -377,7 +377,7 @@ export function AppSidebar({
 /** Ομάδες στοιχείων μενού χρήστη· όσα δεν έχουν `href` είναι ακόμα «σύντομα διαθέσιμα». */
 const MENU_GROUPS: { icon: LucideIcon; label: string; href?: string }[][] = [
   [
-    { icon: StarIcon, label: "Βαθμολογίες" },
+    { icon: StarIcon, label: "Βαθμολογίες", href: "/grades" },
     { icon: TrophyIcon, label: "Αποτελέσματα Quiz" },
   ],
   [
@@ -389,7 +389,7 @@ const MENU_GROUPS: { icon: LucideIcon; label: string; href?: string }[][] = [
     { icon: InfoIcon, label: "Χρήσιμα" },
   ],
   [
-    { icon: PencilLineIcon, label: "Εξετάσεις" },
+    { icon: PencilLineIcon, label: "Εξετάσεις", href: "/exams" },
     { icon: MessageSquareIcon, label: "Συνομιλία", href: "/chat" },
   ],
 ];

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   ClipboardCheckIcon,
   FileQuestionIcon,
+  GraduationCapIcon,
   ListChecksIcon,
   MessageSquareIcon,
   TargetIcon,
@@ -14,6 +15,7 @@ import {
 export const ADMIN_LINKS = [
   { href: "/admin/active", label: "Ενεργή παράγραφος", icon: TargetIcon },
   { href: "/admin/lessons", label: "Εργασίες", icon: ClipboardCheckIcon },
+  { href: "/admin/grades", label: "Βαθμολογία", icon: GraduationCapIcon },
   { href: "/admin/results", label: "Αποτελέσματα quiz", icon: ListChecksIcon },
   { href: "/admin/questions", label: "Ερωτήσεις quiz", icon: FileQuestionIcon },
   { href: "/admin/students", label: "Μαθητές", icon: UsersIcon },

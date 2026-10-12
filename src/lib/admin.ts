@@ -6,7 +6,7 @@ import { Query } from "node-appwrite";
 import { appwriteConfig } from "./appwrite/config";
 import { createAdminClient } from "./appwrite/server";
 import { getUser } from "./auth";
-import { LEVELS, type CurrentUser, type Level } from "./types";
+import { LEVEL_LABELS, LEVELS, type CurrentUser, type Level } from "./types";
 
 /** Ο συνδεδεμένος admin· αλλιώς 404 (δεν αποκαλύπτουμε ότι υπάρχει το /admin). */
 export async function requireAdmin(): Promise<CurrentUser> {
@@ -59,7 +59,10 @@ export async function listSections(): Promise<Section[]> {
       const custom = (LEVELS as readonly string[]).includes(s.level as string);
       return {
         id: s.id as number,
-        label: custom ? String(s.name) : `${s.name}${s.number}`,
+        // Τα ιδιαίτερα τμήματα έχουν συχνά το ίδιο όνομα → μαζί η τάξη τους.
+        label: custom
+          ? `${s.name} (${LEVEL_LABELS[s.level as Level]})`
+          : `${s.name}${s.number}`,
         level: custom
           ? (s.level as Level)
           : (levelByClassRoom.get(s.idClassRoom as number) ?? null),
