@@ -47,3 +47,6 @@ next-env.d.ts
 # Appwrite Functions: εξαρτήσεις και πακέτα deploy
 appwrite/functions/*/node_modules
 appwrite/functions/*.tar.gz
+
+# Δοκιμαστικά δεδομένα (scripts/seed-demo.mjs): τι δημιουργήθηκε, για το --clean
+scripts/demo/manifest.json
