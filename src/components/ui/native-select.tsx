@@ -25,7 +25,11 @@ function NativeSelect({
           "w-full min-w-0 cursor-pointer appearance-none truncate rounded-lg border border-input bg-transparent pl-2.5 pr-8 text-sm transition-colors outline-none",
           "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
           "disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30",
+          // Η λίστα που ανοίγει ζωγραφίζεται από τον browser: χρώματα και στις
+          // επικεφαλίδες ομάδων (optgroup), και σκοτεινό color-scheme στο dark.
           "[&_option]:bg-popover [&_option]:text-popover-foreground",
+          "[&_optgroup]:bg-popover [&_optgroup]:font-semibold [&_optgroup]:text-popover-foreground",
+          "dark:[color-scheme:dark]",
           size === "sm" ? "h-7 text-xs" : "h-8",
           className,
         )}

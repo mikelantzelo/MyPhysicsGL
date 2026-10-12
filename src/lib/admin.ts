@@ -167,3 +167,47 @@ export async function getSectionResults(
     createdAt: r.$createdAt as string,
   }));
 }
+
+export type SectionStudent = { id: number; name: string };
+
+/** Οι μαθητές ενός τμήματος, αλφαβητικά. */
+export async function listSectionStudents(sectionId: number): Promise<SectionStudent[]> {
+  const links = await listAll(appwriteConfig.tables.sectionStudents, [
+    Query.equal("idSection", sectionId),
+  ]);
+  const ids = links.map((l) => l.idStudent as number);
+  if (ids.length === 0) return [];
+
+  const students = await listAll(appwriteConfig.tables.student, [Query.equal("id", ids)]);
+  return students
+    .map((s) => ({
+      id: s.id as number,
+      name: `${s.lastName ?? ""} ${s.firstName ?? ""}`.trim() || `#${s.id}`,
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name, "el"));
+}
+
+/** Το όνομα ενός μαθητή (ή null αν δεν υπάρχει). */
+export async function getStudentName(idStudent: number): Promise<string | null> {
+  const rows = await listAll(appwriteConfig.tables.student, [Query.equal("id", idStudent)]);
+  const s = rows[0];
+  return s ? `${s.lastName ?? ""} ${s.firstName ?? ""}`.trim() || `#${s.id}` : null;
+}
+
+/** Καλύτερο ποσοστό quiz ανά `${idStudent}_${idChapter}`. */
+export async function bestQuizScores(idStudents: number[]): Promise<Map<string, number>> {
+  const best = new Map<string, number>();
+  if (idStudents.length === 0) return best;
+  const rows = await listAll(appwriteConfig.tables.result, [
+    Query.equal("idStudent", idStudents),
+    Query.select(["idStudent", "idChapter", "score", "sumQuestions"]),
+  ]);
+  for (const r of rows) {
+    const total = r.sumQuestions as number;
+    if (!total) continue;
+    const pct = Math.round((Number(r.score) / total) * 100);
+    const key = `${r.idStudent}_${r.idChapter}`;
+    if (pct > (best.get(key) ?? -1)) best.set(key, pct);
+  }
+  return best;
+}

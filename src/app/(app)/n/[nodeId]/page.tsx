@@ -65,7 +65,7 @@ export default async function NodePage({ params }: PageProps<"/n/[nodeId]">) {
           ))}
         </ul>
       ) : (
-        <SectionTabs urls={urls} quiz={quiz} />
+        <SectionTabs nodeId={node.id} urls={urls} quiz={quiz} />
       )}
     </div>
   );

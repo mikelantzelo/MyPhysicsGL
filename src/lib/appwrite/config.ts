@@ -26,6 +26,7 @@ export const appwriteConfig = {
     active: "active",
     question: "question",
     result: "result",
+    lessonProgress: "lesson_progress",
   },
 } as const;
 

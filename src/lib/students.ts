@@ -49,7 +49,25 @@ async function usersById(ids: string[]) {
   return map;
 }
 
-/** `section`: id τμήματος, "none" (χωρίς τμήμα) ή "all". */
+const GREEK_TO_LATIN: Record<string, string> = {
+  α: "a", β: "v", γ: "g", δ: "d", ε: "e", ζ: "z", η: "i", θ: "th", ι: "i", κ: "k",
+  λ: "l", μ: "m", ν: "n", ξ: "x", ο: "o", π: "p", ρ: "r", σ: "s", ς: "s", τ: "t",
+  υ: "y", φ: "f", χ: "ch", ψ: "ps", ω: "o",
+};
+
+/** Για αναζήτηση: πεζά, χωρίς τόνους, ελληνικά → λατινικά («Θάνος» και «thanos» ταιριάζουν). */
+function fold(text: string) {
+  return text
+    .toLocaleLowerCase("el")
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .replace(/[α-ω]/g, (c) => GREEK_TO_LATIN[c] ?? c);
+}
+
+/**
+ * `section`: id τμήματος, "none" (χωρίς τμήμα) ή "all". Με αναζήτηση ψάχνει σε
+ * όλους τους μαθητές, ανεξάρτητα από το τμήμα.
+ */
 export async function listStudents(
   section: number | "none" | "all",
   search = "",
@@ -60,7 +78,7 @@ export async function listStudents(
   ]);
   const sectionOf = new Map(links.map((l) => [l.idStudent as number, l.idSection as number]));
 
-  const q = search.trim().toLocaleLowerCase("el");
+  const q = fold(search.trim());
   const rows = students
     .map((s) => ({
       id: s.id as number,
@@ -73,12 +91,16 @@ export async function listStudents(
       enabled: null as boolean | null,
     }))
     .filter((s) =>
-      section === "all" ? true : section === "none" ? s.sectionId == null : s.sectionId === section,
+      q || section === "all"
+        ? true
+        : section === "none"
+          ? s.sectionId == null
+          : s.sectionId === section,
     )
     .filter(
       (s) =>
         !q ||
-        s.name.toLocaleLowerCase("el").includes(q) ||
+        fold(s.name).includes(q) ||
         s.registrationNumber.includes(q) ||
         (s.loginCode ?? "").includes(q),
     )

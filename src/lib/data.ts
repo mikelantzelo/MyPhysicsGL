@@ -163,3 +163,18 @@ export async function countQuizQuestions(idChapter: string): Promise<number> {
   });
   return res.total;
 }
+
+/** Ένας κόμβος από το $id του, όποιας τάξης (για τη διαχείριση). */
+export async function getNodeById(nodeId: string): Promise<ContentNode | null> {
+  const { tables } = createAdminClient();
+  try {
+    const row = await tables.getRow({
+      databaseId: appwriteConfig.databaseId,
+      tableId: appwriteConfig.tables.nodes,
+      rowId: nodeId,
+    });
+    return toNode(row as unknown as Record<string, unknown>);
+  } catch {
+    return null;
+  }
+}

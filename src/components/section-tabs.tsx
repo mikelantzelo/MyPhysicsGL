@@ -8,9 +8,10 @@ import {
   SparklesIcon,
 } from "lucide-react";
 
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useRef } from "react";
 import { Loader2Icon } from "lucide-react";
 
+import { useLessonBridge } from "@/components/lesson-bridge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 /** Το quiz (dnd-kit, KaTeX, …) κατεβαίνει μόνο όταν ανοίξει η καρτέλα του. */
@@ -64,14 +65,20 @@ const TABS = [
 ] as const;
 
 export function SectionTabs({
+  nodeId,
   urls,
   quiz,
 }: {
+  /** Η παράγραφος (για την πρόοδο/αναφορά του μαθήματος της Παρουσίασης). */
+  nodeId: string;
   /** Το index.html ανά καρτέλα (π.χ. presentation, theory), όσα υπάρχουν. */
   urls: Partial<Record<(typeof TABS)[number]["value"], string>>;
   /** Υπάρχουν ερωτήσεις για την παράγραφο → το quiz παίζει μέσα στην καρτέλα. */
   quiz: { idStudent: number; idChapter: string } | null;
 }) {
+  const presentation = useRef<HTMLIFrameElement>(null);
+  useLessonBridge(presentation, urls.presentation, nodeId);
+
   return (
     <Tabs
       defaultValue="presentation"
@@ -109,6 +116,7 @@ export function SectionTabs({
           ) : urls[value] ? (
             <iframe
               key={urls[value]}
+              ref={value === "presentation" ? presentation : undefined}
               src={urls[value]}
               title={label}
               allow="autoplay; fullscreen"

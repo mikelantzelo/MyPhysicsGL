@@ -9,10 +9,13 @@ import { fetchUnreadCount } from "@/app/chat-actions";
 
 import { CHAT_EVENT } from "./push-client";
 
-/** Εφεδρικό· κανονικά ενημερώνεται αμέσως με push και σε κάθε πλοήγηση. */
-const REFRESH_MS = 5 * 60_000;
+/**
+ * Εφεδρικό για όσους δεν έχουν ενεργοποιήσει τις ειδοποιήσεις push (τότε
+ * ενημερώνεται αμέσως). Μόνο όσο η σελίδα είναι ορατή.
+ */
+const REFRESH_MS = 60_000;
 
-/** Καμπανάκι με τα αδιάβαστα μηνύματα· ανανεώνεται με push, σε κάθε πλοήγηση και κάθε 5′. */
+/** Καμπανάκι με τα αδιάβαστα μηνύματα· ανανεώνεται με push, σε κάθε πλοήγηση και κάθε 1′. */
 export function UnreadBell({ initial, href }: { initial: number; href: string }) {
   const [count, setCount] = useState(initial);
   const pathname = usePathname();
